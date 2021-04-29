@@ -33,6 +33,7 @@ MAKE_BR = make -C buildroot BR2_EXTERNAL=$(TOPDIR) BR2_DL_DIR=$(TOPDIR)/dl
 	@echo
 	@echo "The target $(TARGET) is now initialized!"
 	@echo "You may now use the following commands:"
+	@echo "  make $(TARGET)_source 		Download all sources so an offline build is possible"
 	@echo "  make $(TARGET)_all			Build everything"
 	@echo "  make $(TARGET)_clean		Clean everything"
 	@echo "  make $(TARGET)_menuconfig	Open the menuconfig"
@@ -43,6 +44,11 @@ MAKE_BR = make -C buildroot BR2_EXTERNAL=$(TOPDIR) BR2_DL_DIR=$(TOPDIR)/dl
 	@echo
 	@echo "Project has been built successfully."
 	@echo "Images are in buildroot/output/images."
+
+%_source: %_isInited
+	$(MAKE_TARGET) source
+	@echo
+	@echo "All sources downloaded"
 
 %_menuconfig: %_isInited
 	$(MAKE_TARGET) menuconfig
@@ -118,30 +124,6 @@ configs/%_defconfig:
 	@echo "ERROR: This defconfig does not exist!"
 	@false
 # end - Helper stuff
-
-# Fwup stuff
-define fwup-burn
-	@echo "fwup: Executing burn task $(1)"
-	sudo $(TARGET_OUTPUTS)/host/usr/bin/fwup -a -i $(firstword $(wildcard $(TARGET_IMAGES)/*.fw)) -t $(1) --enable-trim
-endef
-
-define fwup-burn-test
-	@echo "fwup: Executing burn-test task $(1)"
-	$(TARGET_OUTPUTS)/host/usr/bin/fwup -a -d $(firstword $(wildcard $(TARGET_IMAGES)/*.fw)).img -i $(firstword $(wildcard $(TARGET_IMAGES)/*.fw)) -t $(1)
-endef
-
-%_burn: %_isInited
-	$(call fwup-burn,complete)
-
-%_burn-upgrade: %_isInited
-	$(call fwup-burn,upgrade)
-
-%_burn-test: %_isInited
-	$(call fwup-burn-test,complete)
-
-%_burn-test-upgrade: %_isInited
-	$(call fwup-burn-test,upgrade)
-# end - Fwup stuff
 
 help:
 	@echo 'Project Build Help'
