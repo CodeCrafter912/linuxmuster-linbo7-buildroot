@@ -1,1 +1,5 @@
-source "../package/ItsblueDevelopment/Config.in"
+source "../package/cloop/Config.in"
+source "../package/ubuntugrub/Config.in"
+source "../package/ms-sys/Config.in"
+source "../package/reged/Config.in"
+source "../package/reiserfsprogs/Config.in"

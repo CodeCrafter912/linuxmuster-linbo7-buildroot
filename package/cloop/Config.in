@@ -1,0 +1,7 @@
+config BR2_PACKAGE_CLOOP
+	bool "cloop"
+	depends on BR2_LINUX_KERNEL
+	help
+      Cloop module and utils
+
+      http://knoppix.net/wiki3/index.php?title=Cloop
