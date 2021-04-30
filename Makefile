@@ -1,25 +1,22 @@
 TOPDIR := $(shell pwd)
 
-PROJECT_DEFCONFIG = $(shell grep BR2_DEFCONFIG= buildroot/.config | sed -e 's/.*"\(.*\)"/\1/')
-
 MAKE_BR = make -C buildroot BR2_EXTERNAL=$(TOPDIR) BR2_DL_DIR=$(TOPDIR)/dl
 
 # global
-#.buildStep-buildrootDownloaded:
-#	@echo "Downloading Buildroot..."
-#	git submodule update --recursive || exit 1
-#	@touch .buildStep-buildrootDownloaded
+.buildStep-buildrootDownloaded:
+	@echo "Downloading Buildroot..."
+	git submodule update --init || exit 1
+	@touch .buildStep-buildrootDownloaded
 
 # Apply our patches that either haven't been submitted or merged upstream yet
 #.buildStep-buildrootPatched: .buildStep-buildrootDownloaded
 #	buildroot/support/scripts/apply-patches.sh buildroot patches || exit 1
 #	touch .buildStep-buildrootPatched
 
-#reset-buildroot: .buildStep-buildrootDownloaded
-#	# Reset buildroot to a pristine condition so that the
-#	# patches can be applied again.
-#	cd buildroot && git clean -fdx && git reset --hard
-#	rm -f .buildStep-buildrootPatched
+reset-buildroot: .buildStep-buildrootDownloaded
+	# Reset buildroot to a pristine condition so that the
+	# patches can be applied again.
+	cd buildroot && git clean -fdx && git reset --hard
 
 #update-patches: reset-buildroot .buildStep-buildrootPatched
 # end - global
@@ -53,14 +50,17 @@ MAKE_BR = make -C buildroot BR2_EXTERNAL=$(TOPDIR) BR2_DL_DIR=$(TOPDIR)/dl
 %_menuconfig: %_isInited
 	$(MAKE_TARGET) menuconfig
 	@echo
+	@echo "----------------------------------------"
 	@echo "!!! Important !!!"
-	@echo "$(TARGET_DEFCONFIG) has NOT been updated."
-	@echo "Changes will be lost if you run 'make distclean'."
+	@echo $(TARGET_DEFCONFIG) has NOT been updated.
+	@echo "Changes will not be reflected in your git repository."
 	@echo "Please run"
 	@echo
 	@echo "make $(TARGET)_save"
 	@echo
 	@echo "to update the defconfig."
+	@echo "----------------------------------------"
+	@echo
 
 %_linux-menuconfig: %_isInited
 	$(MAKE_TARGET) linux-menuconfig
@@ -105,7 +105,7 @@ MAKE_BR = make -C buildroot BR2_EXTERNAL=$(TOPDIR) BR2_DL_DIR=$(TOPDIR)/dl
 # Helper stuff
 define calculate-target-vars
 	$(eval TARGET := $(word 1,$(subst _, ,$(1))))
-	$(eval TARGET_DEFCONGIG := $(TOPDIR)/configs/$(TARGET)_defconfig)
+	$(eval TARGET_DEFCONFIG := $(TOPDIR)/configs/$(TARGET)_defconfig)
 	$(eval TARGET_OUTPUTS := $(TOPDIR)/outputs/$(TARGET))
 	$(eval TARGET_IMAGES := $(TARGET_OUTPUTS)/images)
 	$(eval MAKE_TARGET := $(MAKE_BR) O=$(TARGET_OUTPUTS))
@@ -116,7 +116,7 @@ endef
 	$(call calculate-target-vars,$@)
 	@echo "----------------------------------------"
 	@echo "TARGET:			$(TARGET)"
-	@echo "TARGET_DEFCONGIG: 	$(TARGET_DEFCONGIG)"
+	@echo "TARGET_DEFCONFIG: 	$(TARGET_DEFCONFIG)"
 	@echo "TARGET_OUTPUTS:		$(TARGET_OUTPUTS)"
 	@echo "TARGET_IMAGES:		$(TARGET_IMAGES)"
 	@echo "MAKE_TARGET:		$(MAKE_TARGET)"
@@ -133,8 +133,12 @@ outputs/%/.config:
 	@echo "to initialize it!"
 	@false
 
-configs/%_defconfig:
-	@echo "ERROR: This defconfig does not exist!"
+configs/%_defconfig: .buildStep-buildrootDownloaded
+	@echo "ERROR: There is no defconfig for this target!"
+	@echo "Available targets:"
+	@$(foreach b, $(sort $(notdir $(wildcard configs/*_defconfig))), \
+	  printf "  * %s\\n" $(b:_defconfig=);)
+	@echo
 	@false
 # end - Helper stuff
 
@@ -143,11 +147,9 @@ help:
 	@echo '------------------'
 	@echo
 	@echo 'Actions:'
-	@echo "  <target>_all		Build everything"
-	@echo "  <target>_clean	Clean everything"
-	@echo "  <target>_menuconfig	Open the menuconfig"
-	@echo "  <target>_save		Save to current configuration to the respective defconfig"
-	@echo "  Where <target> is one of the available targets."
+	@echo "  reset-buildroot        Reset buildroot."
+	@echo "  <target>_defconfig     Initialize a target."
+	@echo "  <target>_help          Get help for a target."
 	@echo
 	@echo "Available targets:"
 	@$(foreach b, $(sort $(notdir $(wildcard configs/*_defconfig))), \
