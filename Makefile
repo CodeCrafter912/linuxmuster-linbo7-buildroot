@@ -66,17 +66,30 @@ MAKE_BR = make -C buildroot BR2_EXTERNAL=$(TOPDIR) BR2_DL_DIR=$(TOPDIR)/dl
 	$(MAKE_TARGET) linux-menuconfig
 	$(MAKE_TARGET) linux-savedefconfig
 	@echo
-	@echo Going to update your boards/.../linux-x.y.config. If you do not have one,
-	@echo you will get an error shortly. You will then have to make one and update,
+	@echo "----------------------------------------"
+	@echo Going to update your boards/$(TARGET)/linux.config. If you do not have one,
+	@echo you will get an error shortly. You will then have to make one and update
 	@echo your buildroot configuration to use it.
+	@echo To do so, place your linux config into boards/$(TARGET)/linux.config
+	@echo and add the line 
+	@echo BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE=\"$$\(BR2_EXTERNAL\)/board/$(TARGET)/linux.config\"
+	@echo to your defconfig. Dont forget to run make $(TARGET)_defconfig afterwards.
+	@echo "----------------------------------------"
+	@echo
 	$(MAKE_TARGET) linux-update-defconfig
 
 %_busybox-menuconfig: %_isInited
 	$(MAKE_TARGET) busybox-menuconfig
 	@echo
-	@echo Going to update your boards/.../busybox-x.y.config. If you do not have one,
+	@echo "----------------------------------------"
+	@echo Going to update your boards/$(TARGET)/busybox.config. If you do not have one,
 	@echo you will get an error shortly. You will then have to make one and update
 	@echo your buildroot configuration to use it.
+	@echo To do so, place your busybox config into boards/$(TARGET)/busybox.config and add the line 
+	@echo BR2_PACKAGE_BUSYBOX_CONFIG=\"$$\(BR2_EXTERNAL\)/board/$(TARGET)/busybox.config\"
+	@echo to your defconfig. Dont forget to run make $(TARGET)_defconfig afterwards.
+	@echo "----------------------------------------"
+	@echo
 	$(MAKE_TARGET) busybox-update-config
 
 %_clean: %_isInited
