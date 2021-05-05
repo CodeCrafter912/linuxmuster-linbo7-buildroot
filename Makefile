@@ -22,7 +22,7 @@ reset-buildroot: .buildStep-buildrootDownloaded
 # end - global
 
 # board specific
-%_defconfig: configs/%_defconfig
+%_defconfig:
 	$(call calculate-target-vars,$@)
 	$(MAKE_TARGET) $(TARGET)_defconfig
 
@@ -37,7 +37,7 @@ reset-buildroot: .buildStep-buildrootDownloaded
 	@echo "  make $(TARGET)_save		Save to current configuration to the respective defconfig"
 
 %_all: %_isInited
-	$(MAKE_TARGET) -j8
+	$(MAKE_TARGET) -j16
 	@echo
 	@echo "Project has been built successfully."
 	@echo "Images are in buildroot/output/images."

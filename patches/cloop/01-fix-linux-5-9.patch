@@ -1,0 +1,15 @@
+Index: cloop-5.1/cloop.c
+===================================================================
+--- cloop.c.orig        2021-05-05 06:48:53.499982322 +0000
++++ cloop.c     2021-05-05 06:49:17.164271493 +0000
+@@ -1269,7 +1269,10 @@
+ module_init(cloop_init);
+ module_exit(cloop_exit);
+ 
++#define INCLUDE_VERMAGIC
+ #include <linux/vermagic.h>
++#undef INCLUDE_VERMAGIC
++
+ #include <linux/compiler.h>
+ 
+ MODULE_INFO(vermagic, VERMAGIC_STRING);
